@@ -17,7 +17,7 @@ const PaginatedTable = ({
   const [pageSize, setPageSize] = useState(defaultPageSize);
 
   return (
-    <div>
+    <div style={{ overflow: "auto" }}>
       <Table
         dataSource={data}
         columns={columns}

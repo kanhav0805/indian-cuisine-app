@@ -29,27 +29,10 @@ const DishDetailsPage = () => {
   const data = postProcess(results[0]?.data);
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        width: "100vw",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#f0f2f5",
-      }}
-    >
+    <div id="page-container">
       <Card
         title={<Title level={3}>{name} Details</Title>}
-        style={{
-          width: "100%",
-          maxWidth: 800,
-          height: 500,
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-          display: "flex",
-          flexDirection: "column",
-          overflowY: "auto",
-        }}
+        className="card-container"
       >
         <div
           style={{
