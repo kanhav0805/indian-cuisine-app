@@ -9,6 +9,44 @@ import { useGetDishesData } from "../../hooks/useGetDishesData";
 import type { Dish, DishList } from "../../models/Dishes";
 import { useQueryParams } from "../../hooks/useQueryParams";
 import "./DishListPage.css";
+import { useGetPaginatedData } from "../../hooks/useGetPaginatedData";
+
+const CircleComponent = ({ totalTime }) => {
+  const totalCircles = Math.ceil(totalTime / 60);
+  //we will create a array to get the no total circles
+  const totalCirclesArray = Array.from({ length: totalCircles }).map(
+    (_, index) => index
+  );
+  const fullCircles = Math.floor(totalTime / 60);
+  const partialFill = totalTime % 60;
+
+  return (
+    <div style={{ display: "flex", gap: "8px" }}>
+      {totalCirclesArray.map((_, index) => {
+        let fillPercentage = 0;
+
+        if (index < fullCircles) {
+          fillPercentage = 100;
+        } else if (index === fullCircles) {
+          fillPercentage = (partialFill / 60) * 100;
+        }
+
+        return (
+          <div
+            key={index}
+            style={{
+              width: "20px",
+              height: "20px",
+              border: "2px solid black",
+              borderRadius: "50%",
+              background: `conic-gradient(green ${fillPercentage}%, white ${fillPercentage}% 100%)`,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
 
 function generateColumnsFromData(
   data: Dish[],
@@ -16,7 +54,7 @@ function generateColumnsFromData(
 ): ColumnsType<Dish> {
   if (!data?.length) return [];
 
-  const sample = data[0];
+  const sample = { ...data[0], clock: "" };
 
   //getting distinct flavors and state for filtering in table
   const { distinctFlavors, distinctState } = data?.reduce(
@@ -111,6 +149,18 @@ function generateColumnsFromData(
       };
     }
 
+    if (key === "clock") {
+      return {
+        title: "Clock",
+        dataIndex: key,
+        key,
+        render: (text: string, record) => {
+          console.log(text, record, "text");
+          return <CircleComponent totalTime={record?.totalTime} />;
+        },
+      };
+    }
+
     return {
       title: key
         .split("_")
@@ -126,16 +176,24 @@ function generateColumnsFromData(
 
 const DishListPage = () => {
   //state of the component
+  const { page, pageSize } = useQueryParams();
   const [filteredTableData, setFilteredTableData] = useState<DishList>([]);
+  const [paginatedTableData, setPaginatedTableData] = useState([]);
   const { queryConfig, postProcess } = useGetDishesData("");
+  const {
+    queryConfig: paginatedQueryConfig,
+    postProcess: paginatedPostProcess,
+  } = useGetPaginatedData(page, pageSize);
   const { searchedDish } = useQueryParams();
   const navigate = useNavigate();
 
   const results = useQueries({
-    queries: [queryConfig],
+    queries: [queryConfig, paginatedQueryConfig],
   });
 
   const { tableData } = postProcess(results[0]?.data);
+
+  const { tableData: paginatedData } = paginatedPostProcess(results[1]?.data);
 
   //logic to filter the table
   useEffect(() => {
@@ -148,14 +206,30 @@ const DishListPage = () => {
     }
   }, [searchedDish, tableData]);
 
+  useEffect(() => {
+    //this is to add the total time of the dish
+    const nextData = paginatedData?.tableData?.map((item) => {
+      return {
+        ...item,
+        totalTime: +item?.cook_time + +item?.prep_time,
+      };
+    });
+
+    if (nextData) {
+      setPaginatedTableData((prev) => [...prev, ...nextData]);
+    }
+  }, [paginatedData?.tableData]);
+
+  console.log(paginatedTableData);
+
   //columns in the table
   const columns = useMemo(() => {
-    return generateColumnsFromData(tableData, navigate);
-  }, [tableData, navigate]);
+    return generateColumnsFromData(paginatedTableData, navigate);
+  }, [paginatedTableData, navigate]);
 
   return (
     <div id="page-container">
-      <PaginatedTable data={filteredTableData} columns={columns} />
+      <PaginatedTable data={paginatedTableData} columns={columns} />
     </div>
   );
 };

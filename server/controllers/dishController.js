@@ -126,3 +126,19 @@ export const getIngredientsOptions = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getPaginatedData = async (req, res) => {
+  try {
+    const page = req.query.page;
+    const pageSize = req.query.pageSize;
+    //filtering the dishes data
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = page * pageSize;
+    //silce the dihes
+    const slicedDishArray = dishes.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(dishes.length / pageSize);
+    res.status(200).json({ tableData: slicedDishArray, totalPages });
+  } catch (error) {
+    res.status(500).json("Api failed");
+  }
+};

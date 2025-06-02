@@ -5,10 +5,12 @@ import {
   suggestDishesByIngredients,
   searchDishes,
   getIngredientsOptions,
+  getPaginatedData,
 } from "../controllers/dishController.js";
 
 const router = express.Router();
 
+router.get("/paginated", getPaginatedData);
 router.get("/data", getAllDishes);
 router.get("/ingredients", getIngredientsOptions);
 router.get("/search", searchDishes);

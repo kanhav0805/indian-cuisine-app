@@ -7,8 +7,14 @@ export const useQueryParams = () => {
 
   const searchedDish = searchParams.get("searched-dish") ?? "";
 
+  const page = searchParams.get("page") ?? "1";
+
+  const pageSize = searchParams.get("page-size") ?? "10";
+
   return {
     selectedValues,
     searchedDish,
+    page,
+    pageSize,
   };
 };
